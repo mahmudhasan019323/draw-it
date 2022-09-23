@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>HTML5 Canvas</title>
+  <style>
+    html, body {
+    margin: 0;
+    overflow: hidden;
+  }
+  input{
+    margin: 10px;
+  }
+
+  .btn{
+    padding: 10px 20px;
+    background: rgb(21, 201, 192);
+    color: #fff;
+    border: none;
+    font-weight: bold;
+    border-radius: 5px;
+    box-shadow: 7px 7px 20px 0 rgba(41, 41, 41, 0.336);
+    transition: 0.2s;
+  }
+
+  .btn:hover{
+    cursor: pointer;
+    background: rgb(15, 153, 146);;
+    
+  }
+
+  .btn:active{
+    box-shadow: none;
+    background: rgb(15, 153, 146);
+  }
+
+  .selected{
+    background: rgb(15, 153, 146);
+  }
+
+
+  </style>
+</head>
+<body>
+<div class="container">
+  <form>
+    <label for="color">Pen color</label>
+    <input type="color" name="color" class="color" id="color" value="#000000"> 
+    <label for="bg-color">background color</label>
+    <input type="color" name="bg-color" id="bg-color" value="#ffffff">
+    <label for="thickness">thickness</label>
+    <input type="number" id="thickness" value="10">
+    <input type="button" class="btn selected" value="pen" id="pen">
+    <input type="button" class="btn" value="eraser" id="eraser">
+    <input type="button" class="btn" value="clear" id="clear">
+  </form>
+  <div class="bg-picker"></div>
+</div>
+<canvas id="draw"></canvas>
+<script>
+
+const form = document.querySelector('form');
+const colorInput = document.querySelector('.color');
+const bgColor = document.querySelector('#bg-color');
+const thickness = document.querySelector('#thickness');
+const penBtn = document.querySelector('#pen');
+const eraserBtn = document.querySelector('#eraser');
+const clearBtn = document.querySelector('#clear')
+const canvas = document.querySelector('#draw');
+const ctx = canvas.getContext('2d');
+
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+ctx.strokeStyle = colorInput.value;
+ctx.lineJoin = 'round';
+ctx.lineCap = 'round';
+ctx.lineWidth = 10;
+// ctx.globalCompositeOperation = 'multiply';
+
+let isDrawing = false;
+let lastX = 0;
+let lastY = 0;
+let hue = 0;
+let direction = true;
+
+function draw(e,) {
+  e.preventDefault()
+  if (!isDrawing) return;
+  ctx.beginPath();
+  ctx.moveTo(lastX, lastY);
+  if(e.touches){
+    ctx.lineTo(e.targetTouches[0].pageX - e.target.offsetLeft, e.targetTouches[0].pageY - e.target.offsetTop);
+    ctx.stroke();
+    [lastX, lastY] = [e.targetTouches[0].pageX - e.target.offsetLeft, e.targetTouches[0].pageY - e.target.offsetTop];
+  }
+  else{
+    ctx.lineTo(e.offsetX, e.offsetY);
+    ctx.stroke();
+    [lastX, lastY] = [e.offsetX, e.offsetY];
+  }
+
+}
+
+
+
+canvas.addEventListener('mousedown', (e) => {
+  isDrawing = true;
+  [lastX, lastY] = [e.offsetX, e.offsetY];
+});
+
+
+canvas.addEventListener('touchstart', (e)=>{
+  e.preventDefault()
+  isDrawing = true;
+  [lastX, lastY] = [e.targetTouches[0].pageX - e.target.offsetLeft, e.targetTouches[0].pageY - e.target.offsetTop];
+});
+
+form.addEventListener('submit', e=>{
+  e.preventDefault();
+});
+
+colorInput.addEventListener('input', e=>{
+  ctx.strokeStyle = e.target.value;
+});
+bgColor.addEventListener('input', e=>{
+  canvas.style.background = e.target.value;
+  document.querySelector('.container').style.background = e.target.value;
+});
+thickness.addEventListener('change', e=>{
+  ctx.lineWidth = e.target.value;
+});
+
+penBtn.addEventListener('click', (e)=>{
+  ctx.globalCompositeOperation = 'source-over';
+  eraserBtn.classList.remove('selected');
+  penBtn.classList.add('selected');
+  
+});
+
+eraserBtn.addEventListener('click', (e)=>{
+  ctx.globalCompositeOperation = 'destination-out';
+  penBtn.classList.remove('selected');
+  eraserBtn.classList.add('selected');
+});
+
+clearBtn.addEventListener('click', (e)=>{
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+});
+
+
+canvas.addEventListener('mousemove', draw);
+canvas.addEventListener('mouseup', () => isDrawing = false);
+canvas.addEventListener('mouseout', () => isDrawing = false);
+canvas.addEventListener('touchmove', draw);
+canvas.addEventListener('touchend', () => isDrawing = false);
+canvas.addEventListener('touchcancel', () => isDrawing = false);
+
+</script>
+
+</body>
+</html>
